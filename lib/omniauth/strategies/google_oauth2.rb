@@ -90,8 +90,12 @@ module OmniAuth
       end
 
       def custom_build_access_token
+        r_body = JSON.parse( request.body.read ) if request.xhr?
         access_token =
-        if request.xhr? && request.params['code']
+        if request.xhr? && r_body && r_body["code"]
+          verifier = r_body['code']
+          client.auth_code.get_token(verifier, get_token_options('postmessage'), deep_symbolize(options.auth_token_params || {}))
+        elsif request.xhr? && request.params['code']
           verifier = request.params['code']
           client.auth_code.get_token(verifier, get_token_options('postmessage'), deep_symbolize(options.auth_token_params || {}))
         elsif request.params['code'] && request.params['redirect_uri']
